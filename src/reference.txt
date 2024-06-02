@@ -1,0 +1,107 @@
+#include <Arduino.h>
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
+#include <SPI.h>
+#include <U8g2_for_Adafruit_GFX.h>
+
+#include <WiFi.h>
+
+char ssid[] = "Hotspot1";  
+char pass[] = "NotYours";   
+
+#define TFT_CS    42   // Chip Select pin
+#define TFT_DC    40    // Data/Command pin
+#define TFT_RST   41    // Reset pin
+#define TFT_BL    45    // Backlight pin (optional)
+
+Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+U8G2_FOR_ADAFRUIT_GFX u8g2_for_adafruit_gfx;
+
+char server[] = "wifitest.adafruit.com";    // name address for adafruit test
+char path[]   = "/testwifi/index.html";
+
+WiFiClient client;
+
+void printWifiStatus();
+
+void setup() 
+{
+  Serial.begin(9600);
+  
+  //Wifi Intialization
+
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  Serial.print("Attempting to connect to SSID: ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("Connected to WiFi");
+  printWifiStatus();
+
+  Serial.println("\nStarting connection to server...");
+  // if you get a connection, report back via serial:
+  if (client.connect(server, 80)) {
+    Serial.println("connected to server");
+    // Make a HTTP request:
+    client.print("GET "); client.print(path); client.println(" HTTP/1.1");
+    client.print("Host: "); client.println(server);
+    client.println("Connection: close");
+    client.println();
+  }
+
+  //TFT Initialization
+  u8g2_for_adafruit_gfx.begin(tft);      
+  pinMode(TFT_BACKLITE, OUTPUT);
+  digitalWrite(TFT_BACKLITE, HIGH);
+
+  pinMode(TFT_I2C_POWER, OUTPUT);
+  digitalWrite(TFT_I2C_POWER, HIGH);
+  delay(10);
+
+  tft.init(135, 240); // Init ST7789 240x135
+  tft.setRotation(3);
+  tft.fillScreen(ST77XX_BLACK);
+
+  Serial.println(F("TFT Initialized"));
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  tft.fillScreen(ST77XX_BLACK);                            // clear the graphcis buffer  
+  u8g2_for_adafruit_gfx.setFontMode(1);                 // use u8g2 transparent mode (this is default)
+  u8g2_for_adafruit_gfx.setFontDirection(0);            // left to right (this is default)
+  u8g2_for_adafruit_gfx.setForegroundColor(ST77XX_ORANGE);      // apply Adafruit GFX color
+  u8g2_for_adafruit_gfx.setFont(u8g2_font_helvR14_tf);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+  u8g2_for_adafruit_gfx.setCursor(0,20);                // start writing at this position
+  u8g2_for_adafruit_gfx.print(F("Hello World"));
+  u8g2_for_adafruit_gfx.setCursor(0,40);                // start writing at this position
+  u8g2_for_adafruit_gfx.print(F("Umlaut ÄÖÜ"));            // UTF-8 string with german umlaut chars
+
+  delay(2000);
+}
+
+void printWifiStatus() {
+  // print the SSID of the network you're attached to:
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+
+  // print your board's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+
+  // print the received signal strength:
+  long rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI):");
+  Serial.print(rssi);
+  Serial.println(" dBm");
+}
