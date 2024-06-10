@@ -165,7 +165,45 @@ void timer(String remainingTime)
 
     
     // Delay for 1 second
-    delay(1000);
+    int timeSecond = millis();
+    while(millis() - timeSecond < 1000)
+    {
+      //Pause functionality
+      if(millis() - 200 < lastMidButtonPress)
+      {
+        int tempTime = millis();
+        tft.fillScreen(ST77XX_BLACK);
+        tft.setCursor(20,50);
+        testdrawtext(formattedTime, ST77XX_ORANGE);
+        tft.setCursor(20, 90);
+        testdrawtext("Paused", ST77XX_WHITE);
+        delay(300);
+        
+        while(millis() - lastMidButtonPress > 250)
+        {
+        
+        }
+
+        tft.fillScreen(ST77XX_BLACK);
+        tft.setCursor(20, 50);
+        lastMidButtonPress -= 500;
+      }
+
+      if(millis() - 1010 < lastBotButtonPress)
+      {
+        sendEndRequest();
+        tft.fillScreen(ST77XX_BLACK);
+        tft.setCursor(20, 50);
+        testdrawtext("Canceled Timer", ST77XX_RED);
+        delay(3000);
+        tft.fillScreen(ST77XX_BLACK);
+        return;
+      }
+    }
+    //delay(1000);
+
+
+    //Update TFT
     if(currentSeconds != prevSeconds)
     {
       tft.fillRect(160, 40, 50, 50, ST77XX_BLACK);
@@ -181,38 +219,7 @@ void timer(String remainingTime)
     // Decrease totalSeconds by 1
     totalSeconds--;
 
-     //Pause functionality
-    if(millis() - 1010 < lastMidButtonPress)
-    {
-      int tempTime = millis();
-      tft.fillScreen(ST77XX_BLACK);
-      tft.setCursor(20,50);
-      testdrawtext(formattedTime, ST77XX_ORANGE);
-      tft.setCursor(20, 90);
-      testdrawtext("Paused", ST77XX_WHITE);
-      delay(300);
-
-      while(millis() - lastMidButtonPress > 250)
-      {
-        
-      }
-
-      tft.fillScreen(ST77XX_BLACK);
-      tft.setCursor(20, 50);
-    }
-
-    if(millis() - 1010 < lastBotButtonPress)
-    {
-      sendEndRequest();
-      tft.fillScreen(ST77XX_BLACK);
-      tft.setCursor(20, 50);
-      testdrawtext("Canceled Timer", ST77XX_RED);
-      delay(3000);
-      tft.fillScreen(ST77XX_BLACK);
-      return;
-    }
-
-
+    
     // If the seconds value has changed, update the display
     if (currentSeconds != prevSeconds) 
     {
